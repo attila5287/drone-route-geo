@@ -25,8 +25,10 @@ const Map = ({ token }) => {
   const [topHeight, setTopHeight] = useState(20);
   const [stepCount, setStepCount] = useState(4);
   const [toleranceWidth, setToleranceWidth] = useState(6);
+  const [lightPreset, setLightPreset] = useState("dusk");
+  const [styleLoaded, setStyleLoaded] = useState(false);
   // Helper for user input
-  const fetchUserInput = () => ({
+  const fetchUserInput = () => ({ 
     inBaseHi: baseHeight*1,
     inTopHi: topHeight*1,
     inStepCount: stepCount*1,
@@ -46,6 +48,12 @@ const Map = ({ token }) => {
       bearing: -55
       ,
       attributionControl: false,
+      //dusk
+      config: {
+        basemap: {
+          lightPreset: "dusk",
+        },
+      },
     });
 
     const draw = new MapboxDraw({
@@ -93,7 +101,8 @@ const Map = ({ token }) => {
     }
 
     mapRef.current.on("style.load", () => {
-      console.log("map Style loaded");
+      console.log( "map style loaded: ", styleLoaded );
+      setStyleLoaded(true);
       mapRef.current.addSource("user-extrude-src", {
         type: "geojson",
         data: testpoly,
@@ -236,6 +245,10 @@ const Map = ({ token }) => {
     }
   }, [baseHeight, topHeight, stepCount, toleranceWidth]);
 
+  useEffect(() => {
+    if (!styleLoaded) return;
+    mapRef.current.setConfigProperty("basemap", "lightPreset", lightPreset);
+  }, [lightPreset]);
   // Calculation helpers
   function roundByN(floatNum, numDecimals) {
     const tenExp = 10 ** numDecimals;
@@ -258,7 +271,10 @@ const Map = ({ token }) => {
       .features.map((d) => d.properties.LOOPLENGTH + d.properties.STEPHEIGHT)
       .reduce((acc, val) => acc + val, 0), 0);
   }
-
+  const lightMapping = {
+    "dusk": "adjust",
+    "light": "sun",
+  };
   return (
     <>
       <nav className="navbar navbar-expand navbar-dark-dark py-0">
@@ -270,6 +286,23 @@ const Map = ({ token }) => {
               style={{ width: 120, height: 30 }}
             />
           </a>
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  console.log( "light button clicked" );
+                  console.log( "lightPreset: ", lightPreset );
+                  const newLightPreset = lightPreset === "dusk" ? "light" : "dusk";
+                  setLightPreset( newLightPreset );
+                  mapRef.current.setConfigProperty("basemap", "lightPreset", newLightPreset);
+                }}
+              >
+                <i className={`fas fa-${lightMapping[lightPreset]}`}></i>
+              </button>
+            </li>
+          </ul>
         </div>
       </nav>
 
