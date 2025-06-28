@@ -261,24 +261,25 @@ const Map = ({ token }) => {
 
   return (
     <>
-      <nav
-        className="navbar navbar-expand-lg navbar-dark-dark py-0"
-      >
+      <nav className="navbar navbar-expand navbar-dark-dark py-0">
         <div className="container-fluid py-0">
-          <a className="navbar-brand py-0"
-            href="https://www.droneqube.com"
-          >
-            <img src="./public/images/logo/logo-small-square.png" alt="logo" style={{ width: 50, height: 30 }} />
+          <a className="navbar-brand py-0" href="https://www.droneqube.com">
+            <img
+              src="https://droneqube.com/wp-content/uploads/2025/01/DRONEQUBE_LOGO.svg"
+              alt="logo"
+              style={{ width: 120, height: 30 }}
+            />
           </a>
         </div>
       </nav>
+
       <div ref={mapContainerRef} id="map" style={{ height: "100%" }}></div>
       <div
         className="calculation-box"
         style={{
           borderRadius: 10,
           height: 60,
-          width: 100,
+          // width: 100,
           position: "absolute",
           bottom: 20,
           left: 135,
@@ -286,24 +287,31 @@ const Map = ({ token }) => {
           textAlign: "center",
         }}
       >
-        {!roundedArea && <p className="bg-light p-2 round-lg" style={paragraphStyle}>
-          <i className="fas fa-info-circle mx-2"></i>
-          Draw a polygon.</p>}
+        {!roundedArea && (
+          <p className="bg-light p-2 round-lg" style={paragraphStyle}>
+            <i className="fas fa-info-circle mx-2"></i>
+            Draw a polygon.
+          </p>
+        )}
         <div id="calculated-area">
           {roundedArea && (
             <ul className="list-group list-group-horizontal text-sm">
-              <li className="list-group-item" >
+              <li className="list-group-item">
                 <i className="fas fa-square text-info"></i>
-                {getAreaDraw( drawRef.current.getAll() )} sq-mt</li>
-              <li className="list-group-item" >
+                {getAreaDraw(drawRef.current.getAll())} sq-mt
+              </li>
+              <li className="list-group-item">
                 <i className="fas fa-ruler-horizontal text-info"></i>
-                {getPerimeter(    drawRef.current.getAll() )} mt</li>
-              <li className="list-group-item" >
+                {getPerimeter(drawRef.current.getAll())} mt
+              </li>
+              <li className="list-group-item">
                 <i className="fas fa-circle-notch text-success"></i>
-                {getLoopLength(   drawRef.current.getAll() )} mt</li>
-              <li className="list-group-item" >
+                {getLoopLength(drawRef.current.getAll())} mt
+              </li>
+              <li className="list-group-item">
                 <i className="fas fa-route text-success"></i>
-                {getRouteDistance(drawRef.current.getAll() )} m</li>
+                {getRouteDistance(drawRef.current.getAll())} m
+              </li>
             </ul>
           )}
         </div>
