@@ -1,3 +1,10 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+}
+
 .overlay {
   z-index: 1;
 }
@@ -212,7 +219,29 @@
   opacity: 0;
 }
 
+.list-group-item{
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0px 5px;
+}
 .list-group-item .fas{
-  font-size: 1.75em;
+  font-size: 1.5em;
   margin: 0px 2px;
+}
+.calculation-box {
+  border-radius: 10px;
+  height: 60px;
+  /* width: 100%; */
+  position: absolute;
+  bottom: 10px;
+  left: 100px;
+  padding: 2px 5px;
+  text-align: center;
+}
+.paragraph-style {
+  font-family: "monospace";
+  margin: 0;
+  font-size: 12px;
 }

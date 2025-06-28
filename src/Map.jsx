@@ -11,11 +11,6 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import geometricRoute from "./logic/geometricRoute";
 import InputPanel from "./components/InputPanel";
 
-const paragraphStyle = {
-  fontFamily: "Open Sans",
-  margin: 0,
-  fontSize: 11};
-
 const Map = ({ token }) => {
   const mapContainerRef = useRef();
   const mapRef = useRef();
@@ -26,32 +21,31 @@ const Map = ({ token }) => {
   const [stepCount, setStepCount] = useState(4);
   const [toleranceWidth, setToleranceWidth] = useState(6);
   const [lightPreset, setLightPreset] = useState("dusk");
+  const [stylePreset, setStylePreset] = useState("standard");
   const [styleLoaded, setStyleLoaded] = useState(false);
   // Helper for user input
-  const fetchUserInput = () => ({ 
-    inBaseHi: baseHeight*1,
-    inTopHi: topHeight*1,
-    inStepCount: stepCount*1,
-    inToleranceWidth: toleranceWidth*1,
+  const fetchUserInput = () => ({
+    inBaseHi: baseHeight * 1,
+    inTopHi: topHeight * 1,
+    inStepCount: stepCount * 1,
+    inToleranceWidth: toleranceWidth * 1,
   });
   useEffect(() => {
     mapboxgl.accessToken = token;
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/standard",
+      style: "mapbox://styles/mapbox/" + stylePreset,
       // center: [-104.98897, 39.73955], // civic
-      center: [27.176840, 38.454461], // bornova
+      center: [27.17684, 38.454461], // bornova
       zoom: 15.5,
-      pitch: 75
-      ,
-      bearing: -55
-      ,
+      pitch: 75,
+      bearing: -55,
       attributionControl: false,
       //dusk
       config: {
         basemap: {
-          lightPreset: "dusk",
+          lightPreset: lightPreset,
         },
       },
     });
@@ -78,20 +72,18 @@ const Map = ({ token }) => {
         mapRef.current.getSource("user-extrude-src").setData(data);
         mapRef.current
           .getSource("line-src")
-          .setData(
-            geometricRoute(data, fetchUserInput())
-        );
+          .setData(geometricRoute(data, fetchUserInput()));
         if (mapRef.current.getLayer("user-extrude-layer")) {
-              mapRef.current.setPaintProperty(
-                "user-extrude-layer",
-                "fill-extrusion-base",
-                fetchUserInput().inBaseHi
-              );
-              mapRef.current.setPaintProperty(
-                "user-extrude-layer",
-                "fill-extrusion-height",
-                fetchUserInput().inTopHi
-              );
+          mapRef.current.setPaintProperty(
+            "user-extrude-layer",
+            "fill-extrusion-base",
+            fetchUserInput().inBaseHi
+          );
+          mapRef.current.setPaintProperty(
+            "user-extrude-layer",
+            "fill-extrusion-height",
+            fetchUserInput().inTopHi
+          );
         }
         mapRef.current.triggerRepaint();
       } else {
@@ -101,7 +93,7 @@ const Map = ({ token }) => {
     }
 
     mapRef.current.on("style.load", () => {
-      console.log( "map style loaded: ", styleLoaded );
+      console.log("map style loaded: ", styleLoaded);
       setStyleLoaded(true);
       mapRef.current.addSource("user-extrude-src", {
         type: "geojson",
@@ -141,11 +133,11 @@ const Map = ({ token }) => {
       mapRef.current.addSource("line-src", {
         type: "geojson",
         lineMetrics: true,
-        data: geometricRoute( testpoly, {
+        data: geometricRoute(testpoly, {
           inBaseHi: 40,
           inTopHi: 200,
           inStepCount: 10,
-          inToleranceWidth: 12
+          inToleranceWidth: 12,
         }),
       });
       // base config for 2 line layers hrz/vert
@@ -220,9 +212,7 @@ const Map = ({ token }) => {
     ) {
       const drawData = drawRef.current.getAll();
       console.log("drawData", drawData);
-      lineSource.setData(
-        geometricRoute(drawData, fetchUserInput())
-      );
+      lineSource.setData(geometricRoute(drawData, fetchUserInput()));
       if (userExtrudeSource) {
         userExtrudeSource.setData(drawData);
       }
@@ -248,7 +238,13 @@ const Map = ({ token }) => {
   useEffect(() => {
     if (!styleLoaded) return;
     mapRef.current.setConfigProperty("basemap", "lightPreset", lightPreset);
+    mapRef.current.setConfigProperty("basemap", "lightPreset", lightPreset);
   }, [lightPreset]);
+  useEffect(() => {
+    if (!styleLoaded) return;
+    mapRef.current.setStyle("mapbox://styles/mapbox/" + stylePreset);
+  }, [stylePreset]);
+
   // Calculation helpers
   function roundByN(floatNum, numDecimals) {
     const tenExp = 10 ** numDecimals;
@@ -256,24 +252,34 @@ const Map = ({ token }) => {
   }
 
   function getLoopLength(poly) {
-    return roundByN(geometricRoute(poly, fetchUserInput())
-      .features.map((d) => d.properties.LOOPLENGTH)
-      .reduce((acc, val) => acc + val, 0), 0);
+    return roundByN(
+      geometricRoute(poly, fetchUserInput())
+        .features.map((d) => d.properties.LOOPLENGTH)
+        .reduce((acc, val) => acc + val, 0),
+      0
+    );
   }
-  function getAreaDraw (poly) {
+  function getAreaDraw(poly) {
     return roundByN(turf.area(poly), 0);
   }
   function getPerimeter(poly) {
     return roundByN(turf.length(poly, { units: "meters" }), 0);
   }
   function getRouteDistance(poly) {
-    return roundByN(geometricRoute(poly, fetchUserInput())
-      .features.map((d) => d.properties.LOOPLENGTH + d.properties.STEPHEIGHT)
-      .reduce((acc, val) => acc + val, 0), 0);
+    return roundByN(
+      geometricRoute(poly, fetchUserInput())
+        .features.map((d) => d.properties.LOOPLENGTH + d.properties.STEPHEIGHT)
+        .reduce((acc, val) => acc + val, 0),
+      0
+    );
   }
   const lightMapping = {
-    "dusk": "adjust",
-    "light": "sun",
+    dusk: "adjust",
+    light: "sun",
+  };
+  const styleMapping = {
+    standard: "map",
+    "standard-satellite": "satellite",
   };
   return (
     <>
@@ -292,11 +298,36 @@ const Map = ({ token }) => {
                 type="button"
                 className="btn btn-primary"
                 onClick={() => {
-                  console.log( "light button clicked" );
-                  console.log( "lightPreset: ", lightPreset );
-                  const newLightPreset = lightPreset === "dusk" ? "light" : "dusk";
-                  setLightPreset( newLightPreset );
-                  mapRef.current.setConfigProperty("basemap", "lightPreset", newLightPreset);
+                  console.log("style button clicked");
+                  console.log("stylePreset: ", stylePreset);
+                  const newStylePreset =
+                    stylePreset === "standard"
+                      ? "standard-satellite"
+                      : "standard";
+                  console.log( "newStylePreset: ", newStylePreset );
+                  setStylePreset(newStylePreset);
+                  mapRef.current.setStyle( "mapbox://styles/mapbox/" + newStylePreset );
+                  setLightPreset( "light" );
+                }}
+              >
+                <i className={`fas fa-${styleMapping[stylePreset]}`}></i>
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  console.log("light button clicked");
+                  console.log("lightPreset: ", lightPreset);
+                  const newLightPreset =
+                    lightPreset === "dusk" ? "light" : "dusk";
+                  setLightPreset(newLightPreset);
+                  mapRef.current.setConfigProperty(
+                    "basemap",
+                    "lightPreset",
+                    newLightPreset
+                  );
                 }}
               >
                 <i className={`fas fa-${lightMapping[lightPreset]}`}></i>
@@ -306,43 +337,31 @@ const Map = ({ token }) => {
         </div>
       </nav>
 
-      <div ref={mapContainerRef} id="map" style={{ height: "100%" }}></div>
-      <div
-        className="calculation-box"
-        style={{
-          borderRadius: 10,
-          height: 60,
-          // width: 100,
-          position: "absolute",
-          bottom: 20,
-          left: 135,
-          padding: 5,
-          textAlign: "center",
-        }}
-      >
+      <div ref={mapContainerRef} id="map" style={{ height: "calc(100vh - 60px)" }}></div>
+      <div className="calculation-box">
         {!roundedArea && (
-          <p className="bg-light p-2 round-lg" style={paragraphStyle}>
-            <i className="fas fa-info-circle mx-2"></i>
-            Draw a polygon.
+          <p className="bg-dark p-2 round-lg text-light paragraph-style">
+            <i className="fas fa-info-circle mx-2 text-lg"></i>
+            Please draw a polygon.
           </p>
         )}
         <div id="calculated-area">
           {roundedArea && (
-            <ul className="list-group list-group-horizontal text-sm">
+            <ul className="list-group list-group-horizontal text-monospace">
               <li className="list-group-item">
-                <i className="fas fa-square text-info"></i>
+                <i className="fas fa-pull-left fa-square text-info"></i>
                 {getAreaDraw(drawRef.current.getAll())} sq-mt
               </li>
               <li className="list-group-item">
-                <i className="fas fa-ruler-horizontal text-info"></i>
+                <i className="fas fa-pull-left fa-ruler-horizontal text-info"></i>
                 {getPerimeter(drawRef.current.getAll())} mt
               </li>
               <li className="list-group-item">
-                <i className="fas fa-circle-notch text-success"></i>
+                <i className="fas fa-pull-left fa-circle-notch text-success"></i>
                 {getLoopLength(drawRef.current.getAll())} mt
               </li>
               <li className="list-group-item">
-                <i className="fas fa-route text-success"></i>
+                <i className="fas fa-pull-left fa-route text-success"></i>
                 {getRouteDistance(drawRef.current.getAll())} m
               </li>
             </ul>
