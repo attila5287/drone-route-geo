@@ -7,20 +7,30 @@ import { testpoly } from "./testdata";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import geometricRoute from "./logic/geometricRoute";
-
-console.log(geometricRoute(testpoly, {}));
+import InputPanel from "./components/InputPanel";
 
 const paragraphStyle = {
   fontFamily: "Open Sans",
   margin: 0,
-  fontSize: 13,
+  fontSize: 10,
 };
 
 const Map = ({ token }) => {
   const mapContainerRef = useRef();
   const mapRef = useRef();
   const [roundedArea, setRoundedArea] = useState();
-
+  const drawRef = useRef(null);
+  const [baseHeight, setBaseHeight] = useState(0);
+  const [topHeight, setTopHeight] = useState(20);
+  const [stepCount, setStepCount] = useState(4);
+  const [toleranceWidth, setToleranceWidth] = useState(6);
+  // Helper for user input
+  const fetchUserInput = () => ({
+    inBaseHi: baseHeight*1,
+    inTopHi: topHeight*1,
+    inStepCount: stepCount*1,
+    inToleranceWidth: toleranceWidth*1,
+  });
   useEffect(() => {
     mapboxgl.accessToken = token;
 
@@ -43,7 +53,7 @@ const Map = ({ token }) => {
       defaultMode: "draw_polygon",
     });
     mapRef.current.addControl(draw);
-
+    drawRef.current = draw;
     mapRef.current.on("draw.create", updateArea);
     mapRef.current.on("draw.delete", updateArea);
     mapRef.current.on("draw.update", updateArea);
@@ -53,8 +63,12 @@ const Map = ({ token }) => {
       if (data.features.length > 0) {
         const area = turf.area(data);
         setRoundedArea(Math.round(area * 100) / 100);
-        mapRef.current.getSource( "user-extrude-src" ).setData( data );
-        mapRef.current.getSource( "line-src" ).setData( geometricRoute( data, {} ) );
+        mapRef.current.getSource("user-extrude-src").setData(data);
+        mapRef.current
+          .getSource("line-src")
+          .setData(
+            geometricRoute(data, fetchUserInput())
+          );
       } else {
         setRoundedArea();
         if (e.type !== "draw.delete") alert("Click the map to draw a polygon.");
@@ -77,10 +91,8 @@ const Map = ({ token }) => {
           "fill-extrusion-edge-radius": 0.0,
         },
         paint: {
-          // "fill-extrusion-height": fetchUserInput().inTopHi,
-          "fill-extrusion-height": 20,
-          // "fill-extrusion-base": fetchUserInput().inBaseHi,
-          "fill-extrusion-base": 0,
+          "fill-extrusion-height": fetchUserInput().inTopHi,
+          "fill-extrusion-base": fetchUserInput().inBaseHi,
           "fill-extrusion-emissive-strength": 0.9,
           "fill-extrusion-color": "SkyBlue",
           "fill-extrusion-flood-light-color": "DarkTurquoise",
@@ -103,7 +115,7 @@ const Map = ({ token }) => {
       mapRef.current.addSource("line-src", {
         type: "geojson",
         lineMetrics: true,
-        data: geometricRoute(testpoly,{} ),
+        data: geometricRoute(testpoly, fetchUserInput()),
       });
       // base config for 2 line layers hrz/vert
       const paintLine = {
@@ -148,6 +160,59 @@ const Map = ({ token }) => {
       mapRef.current.remove();
     };
   }, []);
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (mapRef.current.getLayer("user-extrude-layer")) {
+      mapRef.current.setPaintProperty(
+        "user-extrude-layer",
+        "fill-extrusion-base",
+        fetchUserInput().inBaseHi
+      );
+      mapRef.current.setPaintProperty(
+        "user-extrude-layer",
+        "fill-extrusion-height",
+        fetchUserInput().inTopHi
+      );
+    }
+
+    // Check if sources exist before trying to use them
+    const lineSource = mapRef.current.getSource("line-src");
+    const userExtrudeSource = mapRef.current.getSource("user-extrude-src");
+
+    if (!lineSource) return; // Sources not loaded yet
+
+    if (
+      drawRef.current &&
+      typeof drawRef.current.getAll === "function" &&
+      drawRef.current.getAll().features.length
+    ) {
+      const drawData = drawRef.current.getAll();
+      console.log("drawData", drawData);
+      lineSource.setData(
+        geometricRoute(drawData, fetchUserInput())
+      );
+      if (userExtrudeSource) {
+        userExtrudeSource.setData(drawData);
+      }
+      mapRef.current.triggerRepaint();
+    } else {
+      // TEST RUN WITH NO DRAW DATA
+      console.log("test run with no draw data");
+      // lineSource.setData(
+      //   geometricRoute(testpoly, {
+      //     inBaseHi: baseHeight,
+      //     inTopHi: topHeight,
+      //     inStepCount: stepCount,
+      //     inToleranceWidth: toleranceWidth,
+      //   })
+      // );
+      // if (userExtrudeSource) {
+      //   userExtrudeSource.setData(testpoly);
+      // }
+      // mapRef.current.triggerRepaint();
+    }
+  }, [baseHeight, topHeight, stepCount, toleranceWidth]);
 
   return (
     <>
@@ -156,11 +221,11 @@ const Map = ({ token }) => {
         className="calculation-box"
         style={{
           borderRadius: 10,
-          height: 90,
-          width: 150,
+          height: 60,
+          width: 100,
           position: "absolute",
           bottom: 20,
-          left: 10,
+          left: 135,
           backgroundColor: "rgba(255, 255, 255, 0.9)",
           padding: 5,
           textAlign: "center",
@@ -179,6 +244,16 @@ const Map = ({ token }) => {
           )}
         </div>
       </div>
+      <InputPanel
+        baseHeight={baseHeight}
+        setBaseHeight={setBaseHeight}
+        topHeight={topHeight}
+        setTopHeight={setTopHeight}
+        stepCount={stepCount}
+        setStepCount={setStepCount}
+        toleranceWidth={toleranceWidth}
+        setToleranceWidth={setToleranceWidth}
+      />
     </>
   );
 };

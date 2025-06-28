@@ -1,7 +1,8 @@
 import * as turf from "@turf/turf";
 
 export default function geometricRoute(poly, userInput) {
-  console.log(userInput);
+  console.log( userInput );
+  console.log( poly );
   const {
     inBaseHi = 0,
     inTopHi = 20,
@@ -147,7 +148,7 @@ export default function geometricRoute(poly, userInput) {
       console.log("generate lines: no feats in geojson smoother polygon");
     }
   }
-  console.log(features);
+  // console.log(features);
 
   return {
     type: "FeatureCollection",

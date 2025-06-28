@@ -28,7 +28,6 @@ export default function InputPanel({
           </div>
           <input
             id="user-base-height"
-            type="number"
             min="0"
             value={baseHeight}
             onChange={(e) => setBaseHeight(Number(e.target.value))}
@@ -60,7 +59,6 @@ export default function InputPanel({
           </div>
           <input
             id="user-top-height"
-            type="number"
             min="1"
             value={topHeight}
             onChange={(e) => setTopHeight(Number(e.target.value))}
@@ -92,7 +90,6 @@ export default function InputPanel({
           </div>
           <input
             id="user-step-count"
-            type="number"
             min="1"
             value={stepCount}
             onChange={(e) => setStepCount(Number(e.target.value))}
@@ -124,7 +121,6 @@ export default function InputPanel({
           </div>
           <input
             id="user-tolerance-w"
-            type="number"
             min="1"
             value={toleranceWidth}
             onChange={(e) => setToleranceWidth(Number(e.target.value))}
