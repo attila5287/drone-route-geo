@@ -6,6 +6,9 @@ import "bootswatch/dist/slate/bootstrap.min.css";
 import { testpoly } from "./testdata";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import geometricRoute from "./logic/geometricRoute";
+
+console.log(geometricRoute(testpoly, {}));
 
 const paragraphStyle = {
   fontFamily: "Open Sans",
@@ -50,7 +53,8 @@ const Map = ({ token }) => {
       if (data.features.length > 0) {
         const area = turf.area(data);
         setRoundedArea(Math.round(area * 100) / 100);
-        mapRef.current.getSource("user-extrude-src").setData(data);
+        mapRef.current.getSource( "user-extrude-src" ).setData( data );
+        mapRef.current.getSource( "line-src" ).setData( geometricRoute( data, {} ) );
       } else {
         setRoundedArea();
         if (e.type !== "draw.delete") alert("Click the map to draw a polygon.");
@@ -96,6 +100,48 @@ const Map = ({ token }) => {
           // "":,
         },
       });
+      mapRef.current.addSource("line-src", {
+        type: "geojson",
+        lineMetrics: true,
+        data: geometricRoute(testpoly,{} ),
+      });
+      // base config for 2 line layers hrz/vert
+      const paintLine = {
+        "line-emissive-strength": 1.0,
+        "line-blur": 0.2,
+        "line-width": 1.25,
+        "line-color": "limegreen",
+      };
+      let layoutLine = {
+        // shared layout between two layers
+        "line-z-offset": [
+          "at-interpolated",
+          ["*", ["line-progress"], ["-", ["length", ["get", "elevation"]], 1]],
+          ["get", "elevation"],
+        ],
+        "line-elevation-reference": "sea",
+        "line-cap": "round",
+      };
+
+      // id: "elevated-line-horizontal",
+      layoutLine["line-cross-slope"] = 0;
+      mapRef.current.addLayer({
+        id: "elevated-line-horizontal",
+        type: "line",
+        source: "line-src",
+        layout: layoutLine,
+        paint: paintLine,
+      });
+
+      // elevated-line-vert
+      layoutLine["line-cross-slope"] = 1;
+      mapRef.current.addLayer({
+        id: "elevated-line-vertical",
+        type: "line",
+        source: "line-src",
+        layout: layoutLine,
+        paint: paintLine,
+      });
     });
     // cleanup function: remove the map when the component unmounts
     return () => {
@@ -109,17 +155,19 @@ const Map = ({ token }) => {
       <div
         className="calculation-box"
         style={{
-          height: 75,
+          borderRadius: 10,
+          height: 90,
           width: 150,
           position: "absolute",
-          bottom: 40,
+          bottom: 20,
           left: 10,
           backgroundColor: "rgba(255, 255, 255, 0.9)",
-          padding: 15,
+          padding: 5,
           textAlign: "center",
+          fontSize: 10,
         }}
       >
-        <p style={paragraphStyle}>Click the map to draw a polygon.</p>
+        <p style={paragraphStyle}>Draw a polygon.</p>
         <div id="calculated-area">
           {roundedArea && (
             <>
