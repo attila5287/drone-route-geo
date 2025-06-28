@@ -3,11 +3,10 @@ import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import * as turf from "@turf/turf";
 import "bootswatch/dist/slate/bootstrap.min.css";
-import { testpoly } from "./testdata";
-import { blankpoly } from "./blankpoly";
-
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import { testpoly } from "./testdata";
+import { blankpoly } from "./blankpoly";
 import geometricRoute from "./logic/geometricRoute";
 import InputPanel from "./components/InputPanel";
 
@@ -291,6 +290,10 @@ const Map = ({ token }) => {
               alt="logo"
               style={{ width: 120, height: 30 }}
             />
+            <i className="fas fa-building mx-2 text-lg text-secondary"></i>
+            <span className="text-secondary mx-2 mt-2 text-monospace">
+              Geometric Route
+            </span>
           </a>
           <ul className="navbar-nav">
             <li className="nav-item">
@@ -304,10 +307,12 @@ const Map = ({ token }) => {
                     stylePreset === "standard"
                       ? "standard-satellite"
                       : "standard";
-                  console.log( "newStylePreset: ", newStylePreset );
+                  console.log("newStylePreset: ", newStylePreset);
                   setStylePreset(newStylePreset);
-                  mapRef.current.setStyle( "mapbox://styles/mapbox/" + newStylePreset );
-                  setLightPreset( "light" );
+                  mapRef.current.setStyle(
+                    "mapbox://styles/mapbox/" + newStylePreset
+                  );
+                  setLightPreset("light");
                 }}
               >
                 <i className={`fas fa-${styleMapping[stylePreset]}`}></i>
@@ -337,7 +342,11 @@ const Map = ({ token }) => {
         </div>
       </nav>
 
-      <div ref={mapContainerRef} id="map" style={{ height: "calc(100vh - 60px)" }}></div>
+      <div
+        ref={mapContainerRef}
+        id="map"
+        style={{ height: "calc(100vh - 60px)" }}
+      ></div>
       <div className="calculation-box">
         {!roundedArea && (
           <p className="bg-dark p-2 round-lg text-light paragraph-style">
