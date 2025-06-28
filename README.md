@@ -1,4 +1,4 @@
-# Geometrical Route | Mapbox-REACT 
+# Geometrical Route | Mapbox-REACT
 
 | Desc | Link |
 | ----------- | ----------- |
@@ -10,7 +10,7 @@
 
 ## Brief Requirements
 > User will draw a polygon
-> Renders *Blue*  Extrusion Layer with def vals 
+> Renders *Blue*  Extrusion Layer with def vals
 > Renders *Green* Line Layer with def vals
 > User input changes, renders related layer
 
@@ -22,9 +22,10 @@
 
 ### Original Pure-JS Code
 ![pure-js](./src/image.png)
-### Mapbox example as a starting point
+![flight-routes](./src/images/flight-routes/image.jpg)
+### Mapbox-REACT example as a starting point
 ![draw-poly](./src/images/draw-poly/image.png)
-### Mapbox example to extrude blue solid body
+### Mapbox-REACT example to extrude blue solid body
 ![extrude-poly](./src/images/extrude-poly/image.png)
-### Mapbox example to create 3-d line path
+### Mapbox-REACT example to create 3-d line path
 ![elevated-line](./src/images/elevated-line/image.png)
