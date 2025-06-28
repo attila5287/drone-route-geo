@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import * as turf from "@turf/turf";
-
+import "bootswatch/dist/slate/bootstrap.min.css";
+import { testpoly } from "./testdata";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 
@@ -23,8 +24,11 @@ const Map = ({ token }) => {
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/satellite-v9",
-      center: [-91.874, 42.76],
-      zoom: 12,
+      center: [-104.98897, 39.73955], // civic
+      zoom: 18.5,
+      pitch: 45,
+      bearing: 155,
+      attributionControl: false,
     });
 
     const draw = new MapboxDraw({
@@ -46,11 +50,57 @@ const Map = ({ token }) => {
       if (data.features.length > 0) {
         const area = turf.area(data);
         setRoundedArea(Math.round(area * 100) / 100);
+        mapRef.current.getSource("user-extrude-src").setData(data);
       } else {
         setRoundedArea();
         if (e.type !== "draw.delete") alert("Click the map to draw a polygon.");
       }
     }
+
+    mapRef.current.on("style.load", () => {
+      console.log("map Style loaded");
+      mapRef.current.addSource("user-extrude-src", {
+        type: "geojson",
+        data: testpoly,
+      });
+
+      // Render id: "user-extrude-layer",
+      mapRef.current.addLayer({
+        id: "user-extrude-layer",
+        type: "fill-extrusion",
+        source: "user-extrude-src",
+        layout: {
+          "fill-extrusion-edge-radius": 0.0,
+        },
+        paint: {
+          // "fill-extrusion-height": fetchUserInput().inTopHi,
+          "fill-extrusion-height": 20,
+          // "fill-extrusion-base": fetchUserInput().inBaseHi,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-emissive-strength": 0.9,
+          "fill-extrusion-color": "SkyBlue",
+          "fill-extrusion-flood-light-color": "DarkTurquoise",
+          "fill-extrusion-opacity": 0.5,
+          "fill-extrusion-ambient-occlusion-wall-radius": 0,
+          "fill-extrusion-ambient-occlusion-radius": 6.0,
+          "fill-extrusion-ambient-occlusion-intensity": 0.9,
+          "fill-extrusion-ambient-occlusion-ground-attenuation": 0.9,
+          "fill-extrusion-vertical-gradient": false,
+          "fill-extrusion-line-width": 0, //outwards like a wall
+          "fill-extrusion-flood-light-wall-radius": 20,
+          "fill-extrusion-flood-light-intensity": 0.9,
+          "fill-extrusion-flood-light-ground-radius": 20,
+          "fill-extrusion-cutoff-fade-range": 0,
+          "fill-extrusion-rounded-roof": true,
+          "fill-extrusion-cast-shadows": false,
+          // "":,
+        },
+      });
+    });
+    // cleanup function: remove the map when the component unmounts
+    return () => {
+      mapRef.current.remove();
+    };
   }, []);
 
   return (

@@ -1,12 +1,30 @@
-# React + Vite
+# Geometrical Route | Mapbox-REACT 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+| Desc | Link |
+| ----------- | ----------- |
+|Code  | https://github.com/attila5287/drone-route-geo |
+|**REACT version** | https://drone-route-geo.vercel.app/ |
+|Pure-JS version  | https://attila5287.github.io/route-planner/ |
 
-Currently, two official plugins are available:
+![react-badge](https://raw.githubusercontent.com/attila5287/img_readme/main/new/react_badge_96.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Brief Requirements
+> User will draw a polygon
+> Renders *Blue*  Extrusion Layer with def vals 
+> Renders *Green* Line Layer with def vals
+> User input changes, renders related layer
 
-## Expanding the ESLint configuration
+|Example|Ref|--|
+|--|--|--|
+|Draw polygon   | (base)    |https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-draw/|
+|Extrude Polygon| (building)|https://docs.mapbox.com/mapbox-gl-js/example/3d-extrusion-floorplan/|
+|Elevated Line  | (route)   |https://docs.mapbox.com/mapbox-gl-js/example/elevated-line/|
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Original Pure-JS Code
+![pure-js](./src/image.png)
+### Mapbox example as a starting point
+![draw-poly](./src/images/draw-poly/image.png)
+### Mapbox example to extrude blue solid body
+![extrude-poly](./src/images/extrude-poly/image.png)
+### Mapbox example to create 3-d line path
+![elevated-line](./src/images/elevated-line/image.png)
