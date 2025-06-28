@@ -4,6 +4,8 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import * as turf from "@turf/turf";
 import "bootswatch/dist/slate/bootstrap.min.css";
 import { testpoly } from "./testdata";
+import { blankpoly } from "./blankpoly";
+
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import geometricRoute from "./logic/geometricRoute";
@@ -12,8 +14,7 @@ import InputPanel from "./components/InputPanel";
 const paragraphStyle = {
   fontFamily: "Open Sans",
   margin: 0,
-  fontSize: 10,
-};
+  fontSize: 11};
 
 const Map = ({ token }) => {
   const mapContainerRef = useRef();
@@ -36,11 +37,14 @@ const Map = ({ token }) => {
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/satellite-v9",
-      center: [-104.98897, 39.73955], // civic
-      zoom: 18.5,
-      pitch: 45,
-      bearing: 155,
+      style: "mapbox://styles/mapbox/standard",
+      // center: [-104.98897, 39.73955], // civic
+      center: [27.176840, 38.454461], // bornova
+      zoom: 15.5,
+      pitch: 75
+      ,
+      bearing: -55
+      ,
       attributionControl: false,
     });
 
@@ -68,7 +72,20 @@ const Map = ({ token }) => {
           .getSource("line-src")
           .setData(
             geometricRoute(data, fetchUserInput())
-          );
+        );
+        if (mapRef.current.getLayer("user-extrude-layer")) {
+              mapRef.current.setPaintProperty(
+                "user-extrude-layer",
+                "fill-extrusion-base",
+                fetchUserInput().inBaseHi
+              );
+              mapRef.current.setPaintProperty(
+                "user-extrude-layer",
+                "fill-extrusion-height",
+                fetchUserInput().inTopHi
+              );
+        }
+        mapRef.current.triggerRepaint();
       } else {
         setRoundedArea();
         if (e.type !== "draw.delete") alert("Click the map to draw a polygon.");
@@ -91,8 +108,8 @@ const Map = ({ token }) => {
           "fill-extrusion-edge-radius": 0.0,
         },
         paint: {
-          "fill-extrusion-height": fetchUserInput().inTopHi,
-          "fill-extrusion-base": fetchUserInput().inBaseHi,
+          "fill-extrusion-height": 200,
+          "fill-extrusion-base": 40,
           "fill-extrusion-emissive-strength": 0.9,
           "fill-extrusion-color": "SkyBlue",
           "fill-extrusion-flood-light-color": "DarkTurquoise",
@@ -115,7 +132,12 @@ const Map = ({ token }) => {
       mapRef.current.addSource("line-src", {
         type: "geojson",
         lineMetrics: true,
-        data: geometricRoute(testpoly, fetchUserInput()),
+        data: geometricRoute( testpoly, {
+          inBaseHi: 40,
+          inTopHi: 200,
+          inStepCount: 10,
+          inToleranceWidth: 12
+        }),
       });
       // base config for 2 line layers hrz/vert
       const paintLine = {
@@ -214,8 +236,42 @@ const Map = ({ token }) => {
     }
   }, [baseHeight, topHeight, stepCount, toleranceWidth]);
 
+  // Calculation helpers
+  function roundByN(floatNum, numDecimals) {
+    const tenExp = 10 ** numDecimals;
+    return Math.round(floatNum * tenExp) / tenExp;
+  }
+
+  function getLoopLength(poly) {
+    return roundByN(geometricRoute(poly, fetchUserInput())
+      .features.map((d) => d.properties.LOOPLENGTH)
+      .reduce((acc, val) => acc + val, 0), 0);
+  }
+  function getAreaDraw (poly) {
+    return roundByN(turf.area(poly), 0);
+  }
+  function getPerimeter(poly) {
+    return roundByN(turf.length(poly, { units: "meters" }), 0);
+  }
+  function getRouteDistance(poly) {
+    return roundByN(geometricRoute(poly, fetchUserInput())
+      .features.map((d) => d.properties.LOOPLENGTH + d.properties.STEPHEIGHT)
+      .reduce((acc, val) => acc + val, 0), 0);
+  }
+
   return (
     <>
+      <nav
+        className="navbar navbar-expand-lg navbar-dark-dark py-0"
+      >
+        <div className="container-fluid py-0">
+          <a className="navbar-brand py-0"
+            href="https://www.droneqube.com"
+          >
+            <img src="./public/images/logo/logo-small-square.png" alt="logo" style={{ width: 50, height: 30 }} />
+          </a>
+        </div>
+      </nav>
       <div ref={mapContainerRef} id="map" style={{ height: "100%" }}></div>
       <div
         className="calculation-box"
@@ -226,34 +282,44 @@ const Map = ({ token }) => {
           position: "absolute",
           bottom: 20,
           left: 135,
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
           padding: 5,
           textAlign: "center",
-          fontSize: 10,
         }}
       >
-        <p style={paragraphStyle}>Draw a polygon.</p>
+        {!roundedArea && <p className="bg-light p-2 round-lg" style={paragraphStyle}>
+          <i className="fas fa-info-circle mx-2"></i>
+          Draw a polygon.</p>}
         <div id="calculated-area">
           {roundedArea && (
-            <>
-              <p style={paragraphStyle}>
-                <strong>{roundedArea}</strong>
-              </p>
-              <p style={paragraphStyle}>square meters</p>
-            </>
+            <ul className="list-group list-group-horizontal text-sm">
+              <li className="list-group-item" >
+                <i className="fas fa-square text-info"></i>
+                {getAreaDraw( drawRef.current.getAll() )} sq-mt</li>
+              <li className="list-group-item" >
+                <i className="fas fa-ruler-horizontal text-info"></i>
+                {getPerimeter(    drawRef.current.getAll() )} mt</li>
+              <li className="list-group-item" >
+                <i className="fas fa-circle-notch text-success"></i>
+                {getLoopLength(   drawRef.current.getAll() )} mt</li>
+              <li className="list-group-item" >
+                <i className="fas fa-route text-success"></i>
+                {getRouteDistance(drawRef.current.getAll() )} m</li>
+            </ul>
           )}
         </div>
       </div>
-      <InputPanel
-        baseHeight={baseHeight}
-        setBaseHeight={setBaseHeight}
-        topHeight={topHeight}
-        setTopHeight={setTopHeight}
-        stepCount={stepCount}
-        setStepCount={setStepCount}
-        toleranceWidth={toleranceWidth}
-        setToleranceWidth={setToleranceWidth}
-      />
+      {roundedArea && (
+        <InputPanel
+          baseHeight={baseHeight}
+          setBaseHeight={setBaseHeight}
+          topHeight={topHeight}
+          setTopHeight={setTopHeight}
+          stepCount={stepCount}
+          setStepCount={setStepCount}
+          toleranceWidth={toleranceWidth}
+          setToleranceWidth={setToleranceWidth}
+        />
+      )}
     </>
   );
 };

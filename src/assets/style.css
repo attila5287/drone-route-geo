@@ -211,3 +211,7 @@
 .opac-0 {
   opacity: 0;
 }
+
+.list-group-item .fas{
+  font-size: 1.75em;
+}
