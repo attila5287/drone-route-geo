@@ -7,14 +7,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import { testpoly } from "./testdata";
 import { blankpoly } from "./blankpoly";
-import geometricRoute from "./logic/geometricRoute";
+import geometricRoute from "./logic/GeometricRoute";
 import InputPanel from "./components/InputPanel";
 
 const Map = ({ token }) => {
   const mapContainerRef = useRef();
   const mapRef = useRef();
-  const [roundedArea, setRoundedArea] = useState();
   const drawRef = useRef(null);
+  const [roundedArea, setRoundedArea] = useState();
   const [baseHeight, setBaseHeight] = useState(0);
   const [topHeight, setTopHeight] = useState(20);
   const [stepCount, setStepCount] = useState(4);
